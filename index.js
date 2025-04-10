@@ -13,7 +13,9 @@ const PORT = process.env.PORT || 8080;
 
 app.post('/start', async (req, res) => {
   const { email, password, skillUrl } = req.body;
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+  const browser = await puppeteer.launch({
+    headless: "new", // Opt into new headless mode
+  });
   const page = await browser.newPage();
 
   try {
