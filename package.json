@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "install": "npm instll tesseract.js @tensorflow/tfjs-node canvas",
+        "install": "npm instll express puppeteer body-parser path fs  tesseract.js @tensorflow/tfjs-node canvas",
         "start": "node index.js"
     }
 }
