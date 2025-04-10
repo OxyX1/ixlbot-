@@ -1,6 +1,16 @@
 {
+    "name": "ixl-bot",
+    "version": "1.0.0",
+    "description": "IXL Auto Solver Bot",
+    "main": "index.js",
     "scripts": {
-        "install": "npm instll express puppeteer body-parser path fs  tesseract.js @tensorflow/tfjs-node canvas",
-        "start": "node index.js"
+      "start": "node index.js"
+    },
+    "dependencies": {
+      "express": "^4.17.1",
+      "puppeteer": "^19.0.0",
+      "tesseract.js": "^2.1.3",
+      "body-parser": "^1.19.1"
     }
-}
+  }
+  
