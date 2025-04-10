@@ -9,6 +9,8 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+const PORT = process.env.PORT || 8080;
+
 app.post('/start', async (req, res) => {
   const { email, password, skillUrl } = req.body;
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
@@ -74,4 +76,4 @@ app.post('/start', async (req, res) => {
 });
 
 app.get('/', (_, res) => res.sendFile(path.join(__dirname, '/public/indsex.html')));
-app.listen(3000, () => console.log("🚀 IXL OCR bot running on port 3000"));
+app.listen(PORT, () => console.log("🚀 IXL OCR bot running on port 3000"));
