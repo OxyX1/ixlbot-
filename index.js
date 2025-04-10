@@ -1,81 +1,67 @@
-const express = require('express');
 const puppeteer = require('puppeteer');
-const Tesseract = require('tesseract.js');
+const express = require('express');
 const bodyParser = require('body-parser');
-const path = require('path');
-const fs = require('fs');
-
 const app = express();
+
+// Middleware to parse POST data
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(express.static('public'));  // Serve static files from the "public" directory
 
-const PORT = process.env.PORT || 8080;
-
+// The route to handle login and start solving problems
 app.post('/start', async (req, res) => {
   const { email, password, skillUrl } = req.body;
-  const browser = await puppeteer.launch({
-    headless: "new", // Opt into new headless mode
-  });
-  const page = await browser.newPage();
 
   try {
-    await page.goto('https://www.ixl.com/signin');
+    // Launch Puppeteer with new headless mode
+    const browser = await puppeteer.launch({
+      headless: 'new',  // Opt into new headless mode
+    });
+
+    const page = await browser.newPage();
+
+    // Go to IXL login page
+    await page.goto('https://www.ixl.com', { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+    // Wait for the username input to be visible and type in the email
+    await page.waitForSelector('#username', { timeout: 5000 });
     await page.type('#username', email);
+
+    // Wait for the password input to be visible and type in the password
+    await page.waitForSelector('#password', { timeout: 5000 });
     await page.type('#password', password);
-    await Promise.all([
-      page.click('[type=submit]'),
-      page.waitForNavigation({ waitUntil: 'networkidle0' }),
-    ]);
 
-    await page.goto(skillUrl, { waitUntil: 'networkidle0' });
+    // Submit the form by clicking the login button (update the selector if necessary)
+    await page.click('#login_button');
 
-    let solved = 0;
-    while (solved < 5) {
-      const questionArea = await page.$('.question-container, .question');
+    // Wait for navigation (this assumes successful login leads to a new page)
+    await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 });
 
-      const buffer = await questionArea.screenshot();
+    // Navigate to the skill URL provided by the user
+    await page.goto(skillUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-      const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
-      const questionText = text.replace(/\s+/g, '');
+    // Wait for the question to be visible (change the selector based on actual page structure)
+    await page.waitForSelector('.question', { timeout: 5000 });
 
-      console.log('🧠 OCR detected question:', questionText);
+    // Extract the question text or image (if image, we might need OCR)
+    const questionText = await page.evaluate(() => {
+      const questionElement = document.querySelector('.question');
+      return questionElement ? questionElement.innerText : 'No question found';
+    });
 
-      let answer = null;
+    // Optionally, if OCR is needed on images:
+    // You can use Tesseract.js to process images and extract text
 
-      try {
-        // Example slope parsing (change as needed)
-        if (questionText.includes("slope")) {
-          // custom slope parser here if needed
-          answer = '1'; // just default, you can add real parsing logic
-        } else {
-          answer = eval(questionText);
-        }
-      } catch {
-        answer = null;
-      }
-
-      if (!answer) break;
-
-      const inputSelector = 'input[type="text"]';
-      await page.waitForSelector(inputSelector);
-      await page.type(inputSelector, answer.toString());
-
-      await Promise.all([
-        page.click('.submit-button'),
-        page.waitForTimeout(1500),
-      ]);
-
-      solved++;
-    }
+    // Return the question text to the client
+    res.send(`Question: ${questionText}`);
 
     await browser.close();
-    res.send("✅ OCR IXL bot finished solving questions.");
-  } catch (err) {
-    console.error(err);
-    await browser.close();
-    res.send("❌ Error during solving.");
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).send('An error occurred while processing your request');
   }
 });
 
-app.get('/', (_, res) => res.sendFile(path.join(__dirname, '/public/indsex.html')));
-app.listen(PORT, () => console.log("🚀 IXL OCR bot running on port 3000"));
+// Start the server on port 3000
+app.listen(process.env.PORT || 8080, () => {
+  console.log('Server running on http://localhost:3000');
+});
