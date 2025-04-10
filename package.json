@@ -1,0 +1,6 @@
+{
+    "scripts": {
+        "install": "npm instll tesseract.js @tensorflow/tfjs-node canvas",
+        "start": "node index.js"
+    }
+}

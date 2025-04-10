@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IXL Auto Bot</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #111;
+      color: #eee;
+      text-align: center;
+    }
+
+    h1 {
+      color: #28a745;
+      font-size: 2.5em;
+    }
+
+    form {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 80%;
+      max-width: 400px;
+      font-size: 1.2em;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 1.4em;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .output {
+      margin-top: 20px;
+      color: #ffcc00;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>IXL Auto Bot</h1>
+  <p>Enter your IXL login info and skill URL to start solving problems automatically!</p>
+
+  <form id="login-form" method="POST" action="/start">
+    <input type="text" name="email" placeholder="IXL Email" required>
+    <input type="password" name="password" placeholder="IXL Password" required>
+    <input type="text" name="skillUrl" placeholder="IXL Skill URL" required>
+    <button type="submit">Start Solving</button>
+  </form>
+
+  <div class="output" id="output"></div>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const outputDiv = document.getElementById('output');
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      const formData = new FormData(form);
+      const data = new URLSearchParams();
+      formData.forEach((value, key) => {
+        data.append(key, value);
+      });
+
+      fetch('/start', {
+        method: 'POST',
+        body: data
+      })
+      .then(response => response.text())
+      .then(data => {
+        outputDiv.textContent = data;
+      })
+      .catch(error => {
+        outputDiv.textContent = '❌ Error: ' + error.message;
+      });
+    });
+  </script>
+</body>
+</html>
